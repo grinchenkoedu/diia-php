@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace GrinchenkoUniversity\Diia\Dto\Response;
 
-class ItemsListResponse implements ResponseInterface
+use GrinchenkoUniversity\Diia\Dto\ApiResource;
+
+class ItemsListResponse
 {
     private array $items;
     private ?int $total;
@@ -15,7 +17,7 @@ class ItemsListResponse implements ResponseInterface
         $this->total = $total;
     }
 
-    public function addItem(ResponseInterface $item): self
+    public function addItem(ApiResource $item): self
     {
         $this->items[] = $item;
         reset($this->items);
@@ -24,7 +26,7 @@ class ItemsListResponse implements ResponseInterface
     }
 
     /**
-     * @return ResponseInterface[]
+     * @return ApiResource[]
      */
     public function getItems(): array
     {

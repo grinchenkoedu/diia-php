@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace GrinchenkoUniversity\Diia\Client;
 
-use GrinchenkoUniversity\Diia\Dto\Request\Acquirers\CreateBranchRequest;
+use GrinchenkoUniversity\Diia\Dto\Acquirers\Branch;
+use GrinchenkoUniversity\Diia\Dto\Acquirers\Offer;
+use GrinchenkoUniversity\Diia\Dto\ApiResource;
 use GrinchenkoUniversity\Diia\Dto\Request\ItemsListRequest;
-use GrinchenkoUniversity\Diia\Dto\Response\Acquirers\BranchResponse;
 use GrinchenkoUniversity\Diia\Dto\Response\CreateResourceResponse;
 use GrinchenkoUniversity\Diia\Dto\Response\ItemsListResponse;
-use GrinchenkoUniversity\Diia\Dto\Response\ResponseInterface;
 use GrinchenkoUniversity\Diia\Mapper\Request\RequestJsonMapper;
 use GrinchenkoUniversity\Diia\Mapper\Response\ResponseJsonMapper;
 use GrinchenkoUniversity\Diia\Provider\HttpHeadersProvider;
 use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\GuzzleException;
 
 class AcquirersClient
 {
@@ -24,6 +23,7 @@ class AcquirersClient
     private ResponseJsonMapper $createResourceResponseMapper;
     private ResponseJsonMapper $branchListResponseMapper;
     private ResponseJsonMapper $branchResponseMapper;
+    private ResponseJsonMapper $offerResponseMapper;
 
     public function __construct(
         ClientInterface     $httpClient,
@@ -31,7 +31,8 @@ class AcquirersClient
         RequestJsonMapper   $requestJsonMapper,
         ResponseJsonMapper  $createResourceResponseMapper,
         ResponseJsonMapper  $branchListResponseMapper,
-        ResponseJsonMapper  $branchResponseMapper
+        ResponseJsonMapper  $branchResponseMapper,
+        ResponseJsonMapper  $offerResponseMapper
     ) {
         $this->httpClient = $httpClient;
         $this->httpHeadersProvider = $httpHeadersProvider;
@@ -39,56 +40,38 @@ class AcquirersClient
         $this->createResourceResponseMapper = $createResourceResponseMapper;
         $this->branchListResponseMapper = $branchListResponseMapper;
         $this->branchResponseMapper = $branchResponseMapper;
+        $this->offerResponseMapper = $offerResponseMapper;
     }
 
-    /**
-     * @param CreateBranchRequest $createBranchRequest
-     *
-     * @return CreateResourceResponse|ResponseInterface
-     *
-     * @throws GuzzleException
-     *
-     * @throws \Psr\SimpleCache\InvalidArgumentException
-     */
-    public function createBranch(CreateBranchRequest $createBranchRequest): CreateResourceResponse
+    public function createBranch(Branch $branch): ApiResource
     {
         $response = $this->httpClient->request(
             'POST',
             '/api/v2/acquirers/branch',
             [
                 'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
-                'body' => $this->requestJsonMapper->mapFromRequest($createBranchRequest),
+                'body' => $this->requestJsonMapper->mapToJson($branch),
             ]
         );
 
         return $this->createResourceResponseMapper->mapFromResponse($response->getBody()->getContents());
     }
 
-    /**
-     * @param string $branchId
-     * @param CreateBranchRequest $createBranchRequest
-     *
-     * @return CreateResourceResponse|ResponseInterface
-     *
-     * @throws GuzzleException
-     *
-     * @throws \Psr\SimpleCache\InvalidArgumentException
-     */
-    public function updateBranch(string $branchId, CreateBranchRequest $createBranchRequest): CreateResourceResponse
+    public function updateBranch(string $branchId, Branch $branch): ApiResource
     {
         $response = $this->httpClient->request(
             'PUT',
             sprintf('/api/v2/acquirers/branch/%s', $branchId),
             [
                 'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
-                'body' => $this->requestJsonMapper->mapFromRequest($createBranchRequest),
+                'body' => $this->requestJsonMapper->mapToJson($branch),
             ]
         );
 
         return $this->createResourceResponseMapper->mapFromResponse($response->getBody()->getContents());
     }
 
-    public function deleteBranch(string $branchId, CreateBranchRequest $createBranchRequest): void
+    public function deleteBranch(string $branchId): void
     {
         $this->httpClient->request(
             'DELETE',
@@ -99,16 +82,7 @@ class AcquirersClient
         );
     }
 
-    /**
-     * @param string $branchId
-     *
-     * @return BranchResponse|ResponseInterface
-     *
-     * @throws GuzzleException
-     *
-     * @throws \Psr\SimpleCache\InvalidArgumentException
-     */
-    public function getBranch(string $branchId): BranchResponse
+    public function getBranch(string $branchId): Branch
     {
         $response = $this->httpClient->request(
             'GET',
@@ -121,15 +95,6 @@ class AcquirersClient
         return $this->branchResponseMapper->mapFromResponse($response->getBody()->getContents());
     }
 
-    /**
-     * @param ItemsListRequest $itemsListRequest
-     *
-     * @return ItemsListResponse|ResponseInterface
-     *
-     * @throws GuzzleException
-     *
-     * @throws \Psr\SimpleCache\InvalidArgumentException
-     */
     public function getBranches(ItemsListRequest $itemsListRequest): ItemsListResponse
     {
         $response = $this->httpClient->request(
@@ -137,10 +102,27 @@ class AcquirersClient
             '/api/v2/acquirers/branches',
             [
                 'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
-                'query' => $this->requestJsonMapper->mapFromRequest($itemsListRequest),
+                'query' => $this->requestJsonMapper->mapToArray($itemsListRequest),
             ]
         );
 
         return $this->branchListResponseMapper->mapFromResponse($response->getBody()->getContents());
+    }
+
+    public function createOffer(string $branchId, Offer $offer): ApiResource
+    {
+        $response = $this->httpClient->request(
+            'POST',
+            sprintf(
+                '/api/v1/acquirers/branch/%s/offer',
+                $branchId
+            ),
+            [
+                'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
+                'body' => $this->requestJsonMapper->mapToJson($offer),
+            ]
+        );
+
+        return $this->createResourceResponseMapper->mapFromResponse($response->getBody()->getContents());
     }
 }

@@ -8,5 +8,5 @@ use GrinchenkoUniversity\Diia\Dto\Request\RequestInterface;
 
 interface RequestMapperInterface
 {
-    public function mapFromRequest(RequestInterface $request): array;
+    public function mapToRequest($dto): array;
 }

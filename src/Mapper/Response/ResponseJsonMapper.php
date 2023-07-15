@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace GrinchenkoUniversity\Diia\Mapper\Response;
 
-use GrinchenkoUniversity\Diia\Dto\Response\ResponseInterface;
 use UnexpectedValueException;
 
 class ResponseJsonMapper
@@ -16,7 +15,7 @@ class ResponseJsonMapper
         $this->responseMapper = $responseMapper;
     }
 
-    public function mapFromResponse(string $responseBody): ResponseInterface
+    public function mapFromResponse(string $responseBody)
     {
         $data = json_decode($responseBody, true);
 

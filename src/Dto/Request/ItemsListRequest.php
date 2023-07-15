@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GrinchenkoUniversity\Diia\Dto\Request;
 
-class ItemsListRequest implements RequestInterface
+class ItemsListRequest
 {
     private int $limit;
     private int $skip;

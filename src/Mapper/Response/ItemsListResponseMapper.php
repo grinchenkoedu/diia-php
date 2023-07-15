@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace GrinchenkoUniversity\Diia\Mapper\Response;
 
-use UnexpectedValueException;
 use GrinchenkoUniversity\Diia\Dto\Response\ItemsListResponse;
-use GrinchenkoUniversity\Diia\Dto\Response\ResponseInterface;
+use UnexpectedValueException;
 
 class ItemsListResponseMapper implements ResponseMapperInterface
 {
@@ -21,17 +20,15 @@ class ItemsListResponseMapper implements ResponseMapperInterface
         $this->responseMapper = $itemMapper;
     }
 
-    /**
-     * @param array $response
-     * @return ResponseInterface|ItemsListResponse
-     */
-    public function mapFromResponse(array $response): ResponseInterface
+    public function mapFromResponse(array $response): ItemsListResponse
     {
         if (!isset($response[$this->itemsWrapper])) {
             throw new UnexpectedValueException('The items not found in the response!');
         }
 
-        $list = new ItemsListResponse();
+        $list = (new ItemsListResponse())
+            ->setTotal($response['total'])
+        ;
 
         foreach ($response[$this->itemsWrapper] as $itemData) {
             $list->addItem($this->responseMapper->mapFromResponse($itemData));

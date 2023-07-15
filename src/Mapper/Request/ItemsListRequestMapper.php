@@ -6,19 +6,18 @@ namespace GrinchenkoUniversity\Diia\Mapper\Request;
 
 use GrinchenkoUniversity\Diia\Dependency\SupportedDependencyInterface;
 use GrinchenkoUniversity\Diia\Dto\Request\ItemsListRequest;
-use GrinchenkoUniversity\Diia\Dto\Request\RequestInterface;
 
 class ItemsListRequestMapper implements RequestMapperInterface, SupportedDependencyInterface
 {
     /**
-     * @param RequestInterface|ItemsListRequest $request
+     * @param ItemsListRequest $dto
      * @return array
      */
-    public function mapFromRequest(RequestInterface $request): array
+    public function mapToRequest($dto): array
     {
         return [
-            'skip' => $request->getSkip(),
-            'limit' => $request->getLimit(),
+            'skip' => $dto->getSkip(),
+            'limit' => $dto->getLimit(),
         ];
     }
 
