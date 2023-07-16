@@ -60,18 +60,18 @@ class AuthClientTest extends TestCase
 
     public function authDataProvider(): Generator
     {
-        yield 'unset auth_acquirer_token' => [
-            new Credentials('acquirerToken', null),
-            [
-                'accept' => 'application/json',
-            ]
-        ];
-
-        yield 'set auth_acquirer_token' => [
+        yield 'with auth_acquirer_token' => [
             new Credentials('acquirerToken', 'authAcquirerToken'),
             [
                 'accept' => 'application/json',
                 'Authorization' => 'Basic authAcquirerToken'
+            ]
+        ];
+
+        yield 'without auth_acquirer_token' => [
+            new Credentials('acquirerToken', null),
+            [
+                'accept' => 'application/json',
             ]
         ];
     }

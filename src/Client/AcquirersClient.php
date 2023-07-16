@@ -8,8 +8,10 @@ use GrinchenkoUniversity\Diia\Dto\Acquirers\Branch;
 use GrinchenkoUniversity\Diia\Dto\Acquirers\Offer;
 use GrinchenkoUniversity\Diia\Dto\ApiResource;
 use GrinchenkoUniversity\Diia\Dto\Request\ItemsListRequest;
+use GrinchenkoUniversity\Diia\Dto\Request\OfferRequest;
 use GrinchenkoUniversity\Diia\Dto\Response\CreateResourceResponse;
 use GrinchenkoUniversity\Diia\Dto\Response\ItemsListResponse;
+use GrinchenkoUniversity\Diia\Dto\Response\OfferResponse;
 use GrinchenkoUniversity\Diia\Mapper\Request\RequestJsonMapper;
 use GrinchenkoUniversity\Diia\Mapper\Response\ResponseJsonMapper;
 use GrinchenkoUniversity\Diia\Provider\HttpHeadersProvider;
@@ -23,6 +25,7 @@ class AcquirersClient
     private ResponseJsonMapper $createResourceResponseMapper;
     private ResponseJsonMapper $branchListResponseMapper;
     private ResponseJsonMapper $branchResponseMapper;
+    private ResponseJsonMapper $offerListResponseMapper;
     private ResponseJsonMapper $offerResponseMapper;
 
     public function __construct(
@@ -32,6 +35,7 @@ class AcquirersClient
         ResponseJsonMapper  $createResourceResponseMapper,
         ResponseJsonMapper  $branchListResponseMapper,
         ResponseJsonMapper  $branchResponseMapper,
+        ResponseJsonMapper  $offerListResponseMapper,
         ResponseJsonMapper  $offerResponseMapper
     ) {
         $this->httpClient = $httpClient;
@@ -40,6 +44,7 @@ class AcquirersClient
         $this->createResourceResponseMapper = $createResourceResponseMapper;
         $this->branchListResponseMapper = $branchListResponseMapper;
         $this->branchResponseMapper = $branchResponseMapper;
+        $this->offerListResponseMapper = $offerListResponseMapper;
         $this->offerResponseMapper = $offerResponseMapper;
     }
 
@@ -124,5 +129,47 @@ class AcquirersClient
         );
 
         return $this->createResourceResponseMapper->mapFromResponse($response->getBody()->getContents());
+    }
+
+    public function deleteOffer(string $branchId, string $offerId): void
+    {
+        $this->httpClient->request(
+            'DELETE',
+            sprintf('/api/v1/acquirers/branch/%s/offer/%s', $branchId, $offerId),
+            [
+                'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
+            ]
+        );
+    }
+
+    public function getOffers(string $branchId, ItemsListRequest $itemsListRequest): ItemsListResponse
+    {
+        $response = $this->httpClient->request(
+            'GET',
+            sprintf('/api/v1/acquirers/branch/%s/offers', $branchId),
+            [
+                'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
+                'query' => $this->requestJsonMapper->mapToArray($itemsListRequest),
+            ]
+        );
+
+        return $this->offerListResponseMapper->mapFromResponse($response->getBody()->getContents());
+    }
+
+    public function makeOfferRequest(string $branchId, OfferRequest $offerRequest): OfferResponse
+    {
+        $response = $this->httpClient->request(
+            'POST',
+            sprintf(
+                '/api/v2/acquirers/branch/%s/offer-request/dynamic',
+                $branchId
+            ),
+            [
+                'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
+                'body' => $this->requestJsonMapper->mapToJson($offerRequest),
+            ]
+        );
+
+        return $this->offerResponseMapper->mapFromResponse($response->getBody()->getContents());
     }
 }

@@ -5,12 +5,15 @@ use GrinchenkoUniversity\Diia\Dependency\DependencyResolver;
 use GrinchenkoUniversity\Diia\Dto\Acquirers\Branch;
 use GrinchenkoUniversity\Diia\Dto\Acquirers\Offer;
 use GrinchenkoUniversity\Diia\Dto\Request\ItemsListRequest;
+use GrinchenkoUniversity\Diia\Dto\Request\OfferRequest;
 use GrinchenkoUniversity\Diia\Mapper\Acquirers\BranchMapper;
 use GrinchenkoUniversity\Diia\Mapper\Acquirers\OfferMapper;
 use GrinchenkoUniversity\Diia\Mapper\Request\ItemsListRequestMapper;
+use GrinchenkoUniversity\Diia\Mapper\Request\OfferRequestMapper;
 use GrinchenkoUniversity\Diia\Mapper\Request\RequestJsonMapper;
 use GrinchenkoUniversity\Diia\Mapper\Response\ApiResourceMapper;
 use GrinchenkoUniversity\Diia\Mapper\Response\ItemsListResponseMapper;
+use GrinchenkoUniversity\Diia\Mapper\Response\OfferResponseMapper;
 use GrinchenkoUniversity\Diia\Mapper\Response\ResponseJsonMapper;
 use GrinchenkoUniversity\Diia\Mapper\ScopesMapper;
 use GrinchenkoUniversity\Diia\Provider\BearerTokenProvider;
@@ -48,6 +51,7 @@ class AcquirersClientTest extends TestCase
             ->addDependency(new ItemsListRequestMapper())
             ->addDependency($branchMapper)
             ->addDependency($offerMapper)
+            ->addDependency(new OfferRequestMapper())
         ;
         $this->requestJsonMapper = new RequestJsonMapper($dependencyResolver);
 
@@ -60,7 +64,10 @@ class AcquirersClientTest extends TestCase
                 new ItemsListResponseMapper('branches', $branchMapper)
             ),
             new ResponseJsonMapper($branchMapper),
-            new ResponseJsonMapper($offerMapper)
+            new ResponseJsonMapper(
+                new ItemsListResponseMapper('offers', $offerMapper)
+            ),
+            new ResponseJsonMapper(new OfferResponseMapper())
         );
     }
 
@@ -289,5 +296,116 @@ class AcquirersClientTest extends TestCase
         $resource = $this->acquirersClient->createOffer('branch_id', $offer);
 
         $this->assertEquals('offer_id', $resource->getId());
+    }
+
+    public function testDeleteOffer()
+    {
+        $this
+            ->httpClient
+            ->expects($this->once())
+            ->method('request')
+            ->with(
+                'DELETE',
+                '/api/v1/acquirers/branch/branch_id/offer/offer_id',
+                [
+                    'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
+                ]
+            )
+            ->willReturn(new Response(204))
+        ;
+
+        $this->acquirersClient->deleteOffer('branch_id', 'offer_id');
+    }
+
+    public function testGetOffers()
+    {
+        $response = new Response(
+            200,
+            [
+                'Content-Type' => 'application/json',
+            ],
+            <<<EOF
+            {
+                "total": 2,
+                "offers": [
+                   {
+                       "_id": "27924...ecb42f44bec9",
+                       "name": "Підписання документа",
+                       "scopes": { "diiaId": ["hashedFilesSigning"] },
+                       "returnLink": "1"
+                   },
+                   {
+                       "_id": "0dc97...d1cc633a81a",
+                       "name": "Підписання заяви",
+                       "scopes": { "diiaId": ["hashedFilesSigning"] },
+                       "returnLink": "1"
+                    }
+                ]
+            }
+            EOF
+        );
+
+        $this
+            ->httpClient
+            ->expects($this->once())
+            ->method('request')
+            ->with(
+                'GET',
+                '/api/v1/acquirers/branch/branch_id/offers',
+                [
+                    'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
+                    'query' => [
+                        'skip' => 0,
+                        'limit' => 100,
+                    ],
+                ]
+            )
+            ->willReturn($response)
+        ;
+
+        $listResponse = $this->acquirersClient->getOffers('branch_id', new ItemsListRequest(100));
+        $items = $listResponse->getItems();
+
+        $this->assertCount(2, $items);
+        $this->assertInstanceOf(Offer::class, $items[0]);
+    }
+
+    public function testOfferRequest()
+    {
+        $offerRequest = new OfferRequest('offer_id', 'request_id');
+        $offerRequest
+            ->setSignAlgo(OfferRequest::SIGN_ALGO_ECDSA)
+            ->addFile('test', 'MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI=')
+        ;
+
+        $response = new Response(
+            200,
+            [
+                'Content-Type' => 'application/json',
+            ],
+            '{"deeplink": "https://diia.app/acquirers/branch/offer/offer-request/uuid4"}'
+        );
+
+        $this
+            ->httpClient
+            ->expects($this->once())
+            ->method('request')
+            ->with(
+                'POST',
+                '/api/v2/acquirers/branch/branch_id/offer-request/dynamic',
+                [
+                    'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
+                    'body' => $this->requestJsonMapper->mapToJson($offerRequest),
+                ]
+            )
+            ->willReturn($response)
+        ;
+
+        $offerResponse = $this->acquirersClient->makeOfferRequest('branch_id', $offerRequest);
+
+        $this->assertEquals(
+            'https://diia.app/acquirers/branch/offer/offer-request/uuid4',
+            $offerResponse->getDeepLink()
+        );
     }
 }
