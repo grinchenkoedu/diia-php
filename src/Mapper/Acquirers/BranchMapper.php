@@ -76,9 +76,9 @@ class BranchMapper implements ResponseMapperInterface, RequestMapperInterface, S
             ->setId($response['_id'])
             ->setCustomFullName($response['customFullName'] ?? null)
             ->setCustomFullAddress($response['customFullAddress'] ?? null)
-            ->setRegion($response['region'])
-            ->setDistrict($response['house'])
-            ->setEmail($response['email'])
+            ->setRegion($response['region'] ?? null)
+            ->setDistrict($response['district'] ?? null)
+            ->setEmail($response['email'] ?? null)
             ->setScopes($this->scopesMapper->mapFromResponse($response['scopes']))
         ;
     }
