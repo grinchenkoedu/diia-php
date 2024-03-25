@@ -7,6 +7,7 @@ namespace GrinchenkoUniversity\Diia\Client;
 use GrinchenkoUniversity\Diia\Dto\Acquirers\Branch;
 use GrinchenkoUniversity\Diia\Dto\Acquirers\Offer;
 use GrinchenkoUniversity\Diia\Dto\ApiResource;
+use GrinchenkoUniversity\Diia\Dto\Request\DocumentRequest;
 use GrinchenkoUniversity\Diia\Dto\Request\ItemsListRequest;
 use GrinchenkoUniversity\Diia\Dto\Request\OfferRequest;
 use GrinchenkoUniversity\Diia\Dto\Response\CreateResourceResponse;
@@ -171,5 +172,17 @@ class AcquirersClient
         );
 
         return $this->offerResponseMapper->mapFromResponse($response->getBody()->getContents());
+    }
+
+    public function documentRequest(DocumentRequest $documentRequest): void
+    {
+        $this->httpClient->request(
+            'POST',
+            '/api/v1/acquirers/document-request',
+            [
+                'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
+                'body' => $this->requestJsonMapper->mapToJson($documentRequest),
+            ]
+        );
     }
 }

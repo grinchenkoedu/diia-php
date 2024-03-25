@@ -19,6 +19,8 @@ class AuthClient
     }
 
     /**
+     * Returns a session token.
+     *
      * @param Credentials $credentials
      *
      * @return string

@@ -27,11 +27,7 @@ class OfferMapper implements RequestMapperInterface, ResponseMapperInterface, Su
     {
         $data = [
             'name' => $dto->getName(),
-            'scopes' => [
-                'diiaId' => [
-                    'hashedFilesSigning',
-                ],
-            ],
+            'scopes' => $this->scopesMapper->mapToRequest($dto->getScopes()),
         ];
 
         if ($dto->getReturnLink() !== null) {

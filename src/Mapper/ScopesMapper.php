@@ -10,25 +10,21 @@ use GrinchenkoUniversity\Diia\Mapper\Response\ResponseMapperInterface;
 
 class ScopesMapper implements ResponseMapperInterface, RequestMapperInterface
 {
-    private array $defaultScopes;
+    private Scopes $defaultScopes;
 
-    public function __construct(array $defaultScopes = [])
+    public function __construct(Scopes $defaultScopes = null)
     {
-        $this->defaultScopes = $defaultScopes;
+        $this->defaultScopes = $defaultScopes ?? new Scopes();
     }
 
     /**
-     * @param Scopes $dto
+     * @param Scopes|null $dto
      *
      * @return array
      */
     public function mapToRequest($dto): array
     {
-        if ($dto === null || count($dto->getAll()) < 1) {
-            return $this->defaultScopes;
-        }
-
-        return $dto->getAll();
+        return ($dto ?? $this->defaultScopes)->getAll();
     }
 
     public function mapFromResponse(array $response): Scopes

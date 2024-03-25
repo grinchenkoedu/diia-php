@@ -21,6 +21,9 @@ use GrinchenkoUniversity\Diia\Provider\HttpHeadersProvider;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
+use GrinchenkoUniversity\Diia\Dto\Scopes;
+use GrinchenkoUniversity\Diia\Enum\ScopesDiiaId;
+use GrinchenkoUniversity\Diia\Enum\ScopesSharing;
 
 class AcquirersClientTest extends TestCase
 {
@@ -40,9 +43,12 @@ class AcquirersClientTest extends TestCase
         );
         $this->httpHeadersProvider = new HttpHeadersProvider($tokenProvider);
 
-        $scopesMapper = new ScopesMapper([
-            'diiaId' => ['hashedFilesSigning'],
-        ]);
+        $defaultScopes = new Scopes();
+        $defaultScopes
+            ->addScopes(ScopesDiiaId::NAME, ScopesDiiaId::SCOPES_ALL)
+            ->addScopes(ScopesSharing::NAME, ScopesSharing::SCOPES_ALL)
+        ;
+        $scopesMapper = new ScopesMapper($defaultScopes);
 
         $branchMapper = new BranchMapper($scopesMapper);
         $offerMapper = new OfferMapper($scopesMapper);
