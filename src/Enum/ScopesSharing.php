@@ -9,6 +9,7 @@ class ScopesSharing
     public const NAME = 'sharing';
 
     public const SCOPES_ALL = [
+        self::SCOPE_PASSPORT,
         self::SCOPE_INTERNAL_PASSPORT,
         self::SCOPE_FOREIGN_PASSPORT,
         self::SCOPE_TAXPAYER_CARD,
@@ -19,6 +20,11 @@ class ScopesSharing
         self::SCOPE_STUDENT_ID_CARD,
         self::SCOPE_EDUCATION_DOCUMENT,
     ];
+
+    /**
+     * Паспорт
+     */
+    public const SCOPE_PASSPORT = 'passport';
 
     /**
      * Паспорт громадянина України у формі ID-картки

@@ -4,10 +4,15 @@ use GrinchenkoUniversity\Diia\Client\AcquirersClient;
 use GrinchenkoUniversity\Diia\Dependency\DependencyResolver;
 use GrinchenkoUniversity\Diia\Dto\Acquirers\Branch;
 use GrinchenkoUniversity\Diia\Dto\Acquirers\Offer;
+use GrinchenkoUniversity\Diia\Dto\Request\DocumentRequest;
 use GrinchenkoUniversity\Diia\Dto\Request\ItemsListRequest;
 use GrinchenkoUniversity\Diia\Dto\Request\OfferRequest;
+use GrinchenkoUniversity\Diia\Dto\Scopes;
+use GrinchenkoUniversity\Diia\Enum\ScopesDiiaId;
+use GrinchenkoUniversity\Diia\Enum\ScopesSharing;
 use GrinchenkoUniversity\Diia\Mapper\Acquirers\BranchMapper;
 use GrinchenkoUniversity\Diia\Mapper\Acquirers\OfferMapper;
+use GrinchenkoUniversity\Diia\Mapper\Request\DocumentRequestMapper;
 use GrinchenkoUniversity\Diia\Mapper\Request\ItemsListRequestMapper;
 use GrinchenkoUniversity\Diia\Mapper\Request\OfferRequestMapper;
 use GrinchenkoUniversity\Diia\Mapper\Request\RequestJsonMapper;
@@ -21,9 +26,6 @@ use GrinchenkoUniversity\Diia\Provider\HttpHeadersProvider;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
-use GrinchenkoUniversity\Diia\Dto\Scopes;
-use GrinchenkoUniversity\Diia\Enum\ScopesDiiaId;
-use GrinchenkoUniversity\Diia\Enum\ScopesSharing;
 
 class AcquirersClientTest extends TestCase
 {
@@ -58,6 +60,7 @@ class AcquirersClientTest extends TestCase
             ->addDependency($branchMapper)
             ->addDependency($offerMapper)
             ->addDependency(new OfferRequestMapper())
+            ->addDependency(new DocumentRequestMapper())
         ;
         $this->requestJsonMapper = new RequestJsonMapper($dependencyResolver);
 
@@ -413,5 +416,86 @@ class AcquirersClientTest extends TestCase
             'https://diia.app/acquirers/branch/offer/offer-request/uuid4',
             $offerResponse->getDeepLink()
         );
+    }
+
+    public function testDocumentRequest()
+    {
+        $documentRequest = new DocumentRequest(
+            'branchId',
+            '3535267635434',
+            'requestId'
+        );
+
+        $this
+            ->httpClient
+            ->expects($this->once())
+            ->method('request')
+            ->with(
+                'POST',
+                '/api/v1/acquirers/document-request',
+                [
+                    'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
+                    'body' => $this->requestJsonMapper->mapToJson($documentRequest),
+                ]
+            )
+            ->willReturn(new Response(200));
+
+        $this->acquirersClient->documentRequest($documentRequest);
+    }
+
+    public function testDocumentRequestStatus()
+    {
+        $barcode = 'barcode';
+        $requestId = 'requestId';
+        $expectedStatus = 'status';
+
+        $this
+            ->httpClient
+            ->expects($this->once())
+            ->method('request')
+            ->with(
+                'GET',
+                '/api/v1/acquirers/document-request/status',
+                [
+                    'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
+                    'query' => [
+                        'barcode' => $barcode,
+                        'requestId' => $requestId,
+                    ],
+                ]
+            )
+            ->willReturn(new Response(200, [], json_encode(['status' => $expectedStatus])));
+
+        $status = $this->acquirersClient->documentRequestStatus($barcode, $requestId);
+
+        $this->assertEquals($expectedStatus, $status);
+    }
+
+    public function testOfferRequestStatus()
+    {
+        $otp = 'otp';
+        $requestId = 'requestId';
+        $expectedStatus = 'status';
+
+        $this
+            ->httpClient
+            ->expects($this->once())
+            ->method('request')
+            ->with(
+                'GET',
+                '/api/v1/acquirers/offer-request/status',
+                [
+                    'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
+                    'query' => [
+                        'otp' => $otp,
+                        'requestId' => $requestId,
+                    ],
+                ]
+            )
+            ->willReturn(new Response(200, [], json_encode(['status' => $expectedStatus])));
+
+        $status = $this->acquirersClient->offerRequestStatus($otp, $requestId);
+
+        $this->assertEquals($expectedStatus, $status);
     }
 }

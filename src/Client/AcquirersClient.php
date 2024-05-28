@@ -10,13 +10,13 @@ use GrinchenkoUniversity\Diia\Dto\ApiResource;
 use GrinchenkoUniversity\Diia\Dto\Request\DocumentRequest;
 use GrinchenkoUniversity\Diia\Dto\Request\ItemsListRequest;
 use GrinchenkoUniversity\Diia\Dto\Request\OfferRequest;
-use GrinchenkoUniversity\Diia\Dto\Response\CreateResourceResponse;
 use GrinchenkoUniversity\Diia\Dto\Response\ItemsListResponse;
 use GrinchenkoUniversity\Diia\Dto\Response\OfferResponse;
 use GrinchenkoUniversity\Diia\Mapper\Request\RequestJsonMapper;
 use GrinchenkoUniversity\Diia\Mapper\Response\ResponseJsonMapper;
 use GrinchenkoUniversity\Diia\Provider\HttpHeadersProvider;
 use GuzzleHttp\ClientInterface;
+use UnexpectedValueException;
 
 class AcquirersClient
 {
@@ -184,5 +184,51 @@ class AcquirersClient
                 'body' => $this->requestJsonMapper->mapToJson($documentRequest),
             ]
         );
+    }
+
+    public function documentRequestStatus(string $barcode, string $requestId): ?string
+    {
+        $response = $this->httpClient->request(
+            'GET',
+            '/api/v1/acquirers/document-request/status',
+            [
+                'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
+                'query' => [
+                    'barcode' => $barcode,
+                    'requestId' => $requestId,
+                ],
+            ]
+        );
+
+        $data = json_decode($response->getBody()->getContents(), true);
+
+        if (($data['status'] ?? null) === null) {
+            throw new UnexpectedValueException('Unexpected status response, failed to fetch status.');
+        }
+
+        return $data['status'];
+    }
+
+    public function offerRequestStatus(string $otp, string $requestId): ?string
+    {
+        $response = $this->httpClient->request(
+            'GET',
+            '/api/v1/acquirers/offer-request/status',
+            [
+                'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
+                'query' => [
+                    'otp' => $otp,
+                    'requestId' => $requestId,
+                ],
+            ]
+        );
+
+        $data = json_decode($response->getBody()->getContents(), true);
+
+        if (($data['status'] ?? null) === null) {
+            throw new UnexpectedValueException('Unexpected status response, failed to fetch status.');
+        }
+
+        return $data['status'];
     }
 }

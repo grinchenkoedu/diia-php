@@ -18,11 +18,18 @@ class OfferRequestMapper implements RequestMapperInterface, SupportedDependencyI
         $request = [
             'offerId' => $dto->getOfferId(),
             'requestId' => $dto->getRequestId(),
-            'signAlgo' => $dto->getSignAlgo(),
         ];
+
+        if ($dto->getSignAlgo() !== null) {
+            $request['signAlgo'] = $dto->getSignAlgo();
+        }
 
         if ($dto->getReturnLink() !== null) {
             $request['returnLink'] = $dto->getReturnLink();
+        }
+
+        if ($dto->getUseDiia() !== null) {
+            $request['useDiia'] = $dto->getUseDiia();
         }
 
         $hashedFiles = [];
@@ -34,11 +41,13 @@ class OfferRequestMapper implements RequestMapperInterface, SupportedDependencyI
             ];
         }
 
-        $request['data'] = [
-            'hashedFilesSigning' => [
-                'hashedFiles' => $hashedFiles,
-            ]
-        ];
+        if (count($hashedFiles) > 0) {
+            $request['data'] = [
+                'hashedFilesSigning' => [
+                    'hashedFiles' => $hashedFiles,
+                ]
+            ];
+        }
 
         return $request;
     }

@@ -1,15 +1,12 @@
 # Diia (Дія) API Client for PHP
+![CI workflow](https://github.com/grinchenkoedu/diia-php/actions/workflows/tests.yml/badge.svg)
 
 ## Tests and development
-1. Prepare image
+1. Install vendors
 ```bash
-docker build -t diia-php .
+docker run --rm -v $(pwd):/app -w /app composer:lts composer install
 ```
-2. Install vendors
+2. Run tests
 ```bash
-docker run --rm -v $(pwd):/app -w /app diia-php composer install
-```
-3. Run tests
-```bash
-docker run --rm -v $(pwd):/app -w /app diia-php vendor/bin/phpunit
+docker run --rm -v $(pwd):/app -w /app composer:lts vendor/bin/phpunit
 ```

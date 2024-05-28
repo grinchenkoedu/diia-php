@@ -2,7 +2,7 @@
   "name": "grinchenkoedu/diia-php",
   "description": "Unofficial Diia library for PHP",
   "type": "library",
-  "license": "GPL-3.0",
+  "license": "MIT",
   "authors": [
     {
       "name": "Yevhen Matasar",
