@@ -3,6 +3,11 @@
 
 This library is not official, no parts are provided or approved by Diia developers.
 
+## Installation
+```shell
+composer require grinchenkoedu/diia-php
+````
+
 ## Recommended libraries
 - [ramsey/uuid](https://github.com/ramsey/uuid) - for UUID generation
 - [matasarei/euspe](https://github.com/matasarei/euspe) - cryptographic library
