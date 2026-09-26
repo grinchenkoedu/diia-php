@@ -179,6 +179,10 @@ $signed = json_decode(base64_decode($payload['encodeData']), true);
 $verifier = new SignatureVerifier($session); // an opened EusignSession, as above
 
 foreach ($signed['signedItems'] as $item) {
+    if (!isset($hashes[$item['name']])) {
+        throw new UnexpectedValueException('The callback names a file this request did not send.');
+    }
+
     // Both arguments are raw binary. Throws Matasar\Euspe\Exception\VerificationException
     // when the signature is not over this hash: reject the callback then.
     $signInfo = $verifier->verifyHash(base64_decode($item['signature']), base64_decode($hashes[$item['name']]));
