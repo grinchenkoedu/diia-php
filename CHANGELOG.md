@@ -28,7 +28,9 @@
   `getResponseBody()`): HTTP errors and transport errors, which were Guzzle exceptions, and
   unreadable responses or a status response without a status, which were `UnexpectedValueException`.
   A request that got no response has status code 0. Still `UnexpectedValueException`: a list
-  response without its items key, and a token response without a token.
+  response without its items key, and a token response without a token. A DTO that cannot be
+  encoded as JSON (a string that is not valid UTF-8) throws `JsonException` before any request
+  is sent; 1.x sent an empty body.
 - `BearerTokenProvider` caches the token for 7200 − 300 seconds instead of its full lifetime,
   and has `invalidate()`. A 401 from the API drops the token, fetches a new one and retries the
   call once.
