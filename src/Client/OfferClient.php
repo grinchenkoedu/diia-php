@@ -47,7 +47,7 @@ class OfferClient
     {
         $data = $this->transport->request(
             'POST',
-            sprintf('/api/v1/acquirers/branch/%s/offer', $branchId),
+            sprintf('/api/v1/acquirers/branch/%s/offer', rawurlencode($branchId)),
             $this->offerMapper->mapToRequest($offer)
         );
 
@@ -61,7 +61,7 @@ class OfferClient
     {
         $this->transport->request(
             'DELETE',
-            sprintf('/api/v1/acquirers/branch/%s/offer/%s', $branchId, $offerId)
+            sprintf('/api/v1/acquirers/branch/%s/offer/%s', rawurlencode($branchId), rawurlencode($offerId))
         );
     }
 
@@ -72,7 +72,7 @@ class OfferClient
     {
         $data = $this->transport->request(
             'GET',
-            sprintf('/api/v1/acquirers/branch/%s/offers', $branchId),
+            sprintf('/api/v1/acquirers/branch/%s/offers', rawurlencode($branchId)),
             null,
             $this->itemsListRequestMapper->mapToRequest($itemsListRequest)
         );

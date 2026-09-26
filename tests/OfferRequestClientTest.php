@@ -57,6 +57,16 @@ class OfferRequestClientTest extends TestCase
         );
     }
 
+    public function testEscapesBranchIdInPath(): void
+    {
+        $this->client('offer_request_sharing')->makeDynamic('../x', new OfferRequest('offer_id', 'request_id'));
+
+        $this->assertSame(
+            '/api/v2/acquirers/branch/..%2Fx/offer-request/dynamic',
+            $this->recordedRequest(0)->getUri()->getPath()
+        );
+    }
+
     public function testStatus(): void
     {
         $status = $this->client('offer_request_status')->status('otp', 'request_id');

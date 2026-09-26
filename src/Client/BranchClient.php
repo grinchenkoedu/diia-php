@@ -61,7 +61,7 @@ class BranchClient
     {
         $data = $this->transport->request(
             'PUT',
-            sprintf('/api/v2/acquirers/branch/%s', $branchId),
+            sprintf('/api/v2/acquirers/branch/%s', rawurlencode($branchId)),
             $this->branchMapper->mapToRequest($branch)
         );
 
@@ -73,7 +73,7 @@ class BranchClient
      */
     public function delete(string $branchId): void
     {
-        $this->transport->request('DELETE', sprintf('/api/v2/acquirers/branch/%s', $branchId));
+        $this->transport->request('DELETE', sprintf('/api/v2/acquirers/branch/%s', rawurlencode($branchId)));
     }
 
     /**
@@ -81,7 +81,7 @@ class BranchClient
      */
     public function get(string $branchId): Branch
     {
-        $data = $this->transport->request('GET', sprintf('/api/v2/acquirers/branch/%s', $branchId));
+        $data = $this->transport->request('GET', sprintf('/api/v2/acquirers/branch/%s', rawurlencode($branchId)));
 
         return $this->branchMapper->mapFromResponse($data);
     }

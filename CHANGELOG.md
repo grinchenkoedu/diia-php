@@ -34,6 +34,8 @@
 - `BearerTokenProvider` caches the token for 7200 − 300 seconds instead of its full lifetime,
   and has `invalidate()`. A 401 from the API drops the token, fetches a new one and retries the
   call once.
+- Branch and offer IDs are URL-encoded in request paths. Diia's IDs are unchanged by it; an ID
+  holding `/`, `?` or `../` no longer sends the request to a different endpoint.
 - Requires `guzzlehttp/guzzle ^7.8`; accepts `psr/simple-cache` 1–3 and `psr/log` 1–3;
   `"php": "^7.4 || ^8.0"`. CI runs the tests on PHP 7.4 and 8.0–8.5.
 

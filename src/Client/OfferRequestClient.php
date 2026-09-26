@@ -37,7 +37,7 @@ class OfferRequestClient
     {
         $data = $this->transport->request(
             'POST',
-            sprintf('/api/v2/acquirers/branch/%s/offer-request/dynamic', $branchId),
+            sprintf('/api/v2/acquirers/branch/%s/offer-request/dynamic', rawurlencode($branchId)),
             $this->offerRequestMapper->mapToRequest($offerRequest)
         );
 

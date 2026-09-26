@@ -108,6 +108,15 @@ class BranchClientTest extends TestCase
         $this->client(new Response(404, [], '{"message": "Branch not found"}'))->get('missing');
     }
 
+    public function testEscapesBranchIdInPath(): void
+    {
+        $this->client('get_branch')->get('a/../b?c');
+
+        // Unescaped, this would resolve to /api/v2/acquirers/b with a query string.
+        $this->assertSame('/api/v2/acquirers/branch/a%2F..%2Fb%3Fc', $this->recordedRequest(0)->getUri()->getPath());
+        $this->assertSame('', $this->recordedRequest(0)->getUri()->getQuery());
+    }
+
     public static function assertBranch($branch): void
     {
         self::assertInstanceOf(Branch::class, $branch);

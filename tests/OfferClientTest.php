@@ -65,4 +65,15 @@ class OfferClientTest extends TestCase
         $this->assertSame(['sharing' => ['passport']], $items[0]->getScopes()->getAll());
         $this->assertSame('0dc97...d1cc633a81a', $items[1]->getId());
     }
+
+    public function testEscapesIdsInPath(): void
+    {
+        $this->client('delete_offer')->delete('branch/1', 'offer?2');
+
+        $this->assertSame(
+            '/api/v1/acquirers/branch/branch%2F1/offer/offer%3F2',
+            $this->recordedRequest(0)->getUri()->getPath()
+        );
+        $this->assertSame('', $this->recordedRequest(0)->getUri()->getQuery());
+    }
 }
