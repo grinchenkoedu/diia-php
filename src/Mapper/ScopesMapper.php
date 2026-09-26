@@ -12,7 +12,7 @@ class ScopesMapper implements ResponseMapperInterface, RequestMapperInterface
 {
     private Scopes $defaultScopes;
 
-    public function __construct(Scopes $defaultScopes = null)
+    public function __construct(?Scopes $defaultScopes = null)
     {
         $this->defaultScopes = $defaultScopes ?? new Scopes();
     }
