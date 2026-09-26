@@ -14,7 +14,13 @@ use Psr\SimpleCache\InvalidArgumentException as InvalidCacheKeyException;
 class BearerTokenProvider
 {
     private const TOKEN_KEY = 'token';
-    private const TOKEN_TTL = 7200;
+
+    /**
+     * Diia issues tokens for 2 hours; the cached copy expires 5 minutes earlier,
+     * so a request made near the end of its life does not arrive with a dead token.
+     */
+    private const TOKEN_LIFETIME = 7200;
+    private const SAFETY_MARGIN = 300;
 
     private AuthClient $authClient;
     private Credentials $credentials;
@@ -46,8 +52,18 @@ class BearerTokenProvider
         }
 
         $token = $this->authClient->acquireToken($this->credentials);
-        $this->cache->set(self::TOKEN_KEY, $token, self::TOKEN_TTL);
+        $this->cache->set(self::TOKEN_KEY, $token, self::TOKEN_LIFETIME - self::SAFETY_MARGIN);
 
         return $token;
+    }
+
+    /**
+     * Drops the cached token, so the next getToken() asks Diia for a new one.
+     *
+     * @throws InvalidCacheKeyException
+     */
+    public function invalidate(): void
+    {
+        $this->cache->delete(self::TOKEN_KEY);
     }
 }

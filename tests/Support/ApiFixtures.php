@@ -12,6 +12,7 @@ use GuzzleHttp\Psr7\Response;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use RuntimeException;
+use Throwable;
 
 /**
  * Replays recorded Diia API exchanges from tests/fixtures/requests/*.json.
@@ -49,14 +50,15 @@ trait ApiFixtures
     }
 
     /**
-     * @param string|ResponseInterface ...$responses fixture names or ready responses, in call order
+     * @param string|ResponseInterface|Throwable ...$responses fixture names, ready responses or
+     *                                                        transport errors, in call order
      */
     protected function httpClientReplaying(...$responses): Client
     {
         $queue = [];
 
         foreach ($responses as $response) {
-            $queue[] = $response instanceof ResponseInterface ? $response : $this->fixtureResponse($response);
+            $queue[] = is_string($response) ? $this->fixtureResponse($response) : $response;
         }
 
         $this->httpHistory = [];
