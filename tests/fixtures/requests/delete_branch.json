@@ -1,0 +1,10 @@
+{
+  "request": {
+    "method": "DELETE",
+    "path": "/api/v2/acquirers/branch/xLm0g93Ghg329NhQj235hAsg32",
+    "query": {},
+    "headers": {"accept": "application/json", "authorization": "Bearer eyJ...ePg", "content-type": "application/json"},
+    "body": null
+  },
+  "response": {"status": 204, "body": null}
+}

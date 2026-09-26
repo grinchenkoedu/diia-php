@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace GrinchenkoUniversity\Diia\Mapper\Request;
 
-use GrinchenkoUniversity\Diia\Dependency\SupportedDependencyInterface;
 use GrinchenkoUniversity\Diia\Dto\Request\DocumentRequest;
 
-class DocumentRequestMapper implements RequestMapperInterface, SupportedDependencyInterface
+class DocumentRequestMapper implements RequestMapperInterface
 {
     /**
      * @param DocumentRequest $dto
@@ -23,10 +22,5 @@ class DocumentRequestMapper implements RequestMapperInterface, SupportedDependen
         ];
 
         return $request;
-    }
-
-    public function isSupported($value): bool
-    {
-        return $value instanceof DocumentRequest;
     }
 }

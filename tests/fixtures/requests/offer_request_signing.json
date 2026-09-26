@@ -1,0 +1,10 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/api/v2/acquirers/branch/branch_id/offer-request/dynamic",
+    "query": {},
+    "headers": {"accept": "application/json", "authorization": "Bearer eyJ...ePg", "content-type": "application/json"},
+    "body": {"offerId": "offer_id", "requestId": "request_id", "signAlgo": "ECDSA", "data": {"hashedFilesSigning": {"hashedFiles": [{"fileName": "test", "fileHash": "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI="}]}}}
+  },
+  "response": {"status": 200, "body": {"deeplink": "https://diia.app/acquirers/branch/offer/offer-request/uuid4"}}
+}

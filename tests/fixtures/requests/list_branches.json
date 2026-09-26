@@ -1,0 +1,10 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/api/v2/acquirers/branches",
+    "query": {"skip": "0", "limit": "2"},
+    "headers": {"accept": "application/json", "authorization": "Bearer eyJ...ePg", "content-type": "application/json"},
+    "body": null
+  },
+  "response": {"status": 200, "body": {"branches": [{"_id": "xLm0g93Ghg329NhQj235hAsg32", "name": "Назва", "email": "acquirer@email.com", "customFullName": "Custom fullname", "customFullAddress": "Custom fulladdress", "region": "Київська обл.", "district": "Києво-Святошинський р-н", "location": "м. Вишневе", "street": "вул. Київська", "house": "2л", "scopes": {"diiaId": ["hashedFilesSigning"]}, "offerRequestType": "dynamic", "deliveryTypes": ["api"]}], "total": 20}}
+}

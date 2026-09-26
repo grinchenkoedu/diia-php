@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/acquirers/branch/branch_id/offers",
+    "query": {"skip": "0", "limit": "100"},
+    "headers": {"accept": "application/json", "authorization": "Bearer eyJ...ePg", "content-type": "application/json"},
+    "body": null
+  },
+  "response": {"status": 200, "body": {"total": 2, "offers": [
+    {"_id": "6de1...a4d7", "name": "Поділитися паспортом", "scopes": {"sharing": ["passport"]}, "returnLink": "https://example.com/return"},
+    {"_id": "0dc97...d1cc633a81a", "name": "Підписання заяви", "scopes": {"diiaId": ["hashedFilesSigning"]}, "returnLink": "1"}
+  ]}}
+}
