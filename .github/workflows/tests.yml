@@ -1,5 +1,13 @@
 name: "Tests"
-on: [push]
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  # Monthly, so the badge always has a recent run on main.
+  schedule:
+    - cron: "0 6 1 * *"
 permissions:
   contents: "read"
 jobs:
@@ -7,26 +15,41 @@ jobs:
     name: Composer config validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          coverage: none
       - name: Validate composer.json
         run: composer validate --strict
-  php:
-    name: PHP syntax validation
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Check PHP syntax
-        run: php -l src/ tests/
   phpunit:
-    name: PHPUnit tests
+    name: PHP ${{ matrix.php }}
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        php_version: [7.4, 8.0, 8.1, 8.2]
+        php: ["7.4", "8.0", "8.1", "8.2", "8.3", "8.4", "8.5"]
     steps:
-      - uses: actions/checkout@v3
-      - uses: php-actions/composer@v6
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
         with:
-          php_version: ${{ matrix.php_version }}
-          command: install --ignore-platform-req=ext-eusphpe
-      - run: vendor/bin/phpunit
+          php-version: ${{ matrix.php }}
+          coverage: none
+      # `php -l <directory>` lints nothing and exits 0, so lint file by file.
+      - name: Check PHP syntax
+        run: find src tests -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Install dependencies
+        run: composer update --no-interaction --no-progress --prefer-dist
+      - name: Run PHPUnit
+        run: vendor/bin/phpunit
+  keepalive:
+    name: Keep the schedule enabled
+    # GitHub disables scheduled workflows after 60 days without repository activity.
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: "write"
+    steps:
+      - run: gh workflow enable tests.yml --repo "$GITHUB_REPOSITORY"
+        env:
+          GH_TOKEN: ${{ github.token }}
