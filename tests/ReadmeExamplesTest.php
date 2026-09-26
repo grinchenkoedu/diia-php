@@ -61,6 +61,10 @@ class ReadmeExamplesTest extends TestCase
         $blocks = self::phpBlocks();
         $this->assertCount(7, $blocks);
 
+        // The stubs record calls in static arrays; start from empty so a repeated run stays green.
+        Hasher::$hashedFiles = [];
+        SignatureVerifier::$verified = [];
+
         $handler = $this->handlerReplaying(
             new Response(200, [], '{"token": "eyJ...ePg"}'),
             // Branches
