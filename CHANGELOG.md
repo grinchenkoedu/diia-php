@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.0 — unreleased
+## 2.0.0 — 2026-09-26
 
 ### Changed
 - `AcquirersClient` is split into one client per API resource, each built by `ClientFactory`
