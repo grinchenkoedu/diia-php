@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace GrinchenkoUniversity\Diia\Mapper\Acquirers;
 
-use GrinchenkoUniversity\Diia\Dependency\SupportedDependencyInterface;
 use GrinchenkoUniversity\Diia\Dto\Acquirers\Branch;
 use GrinchenkoUniversity\Diia\Mapper\Request\RequestMapperInterface;
 use GrinchenkoUniversity\Diia\Mapper\Response\ResponseMapperInterface;
 use GrinchenkoUniversity\Diia\Mapper\ScopesMapper;
 use RuntimeException;
 
-class BranchMapper implements ResponseMapperInterface, RequestMapperInterface, SupportedDependencyInterface
+class BranchMapper implements ResponseMapperInterface, RequestMapperInterface
 {
     private ScopesMapper $scopesMapper;
 
@@ -81,10 +80,5 @@ class BranchMapper implements ResponseMapperInterface, RequestMapperInterface, S
             ->setEmail($response['email'] ?? null)
             ->setScopes($this->scopesMapper->mapFromResponse($response['scopes']))
         ;
-    }
-
-    public function isSupported($value): bool
-    {
-        return $value instanceof Branch;
     }
 }

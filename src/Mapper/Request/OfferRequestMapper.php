@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace GrinchenkoUniversity\Diia\Mapper\Request;
 
-use GrinchenkoUniversity\Diia\Dependency\SupportedDependencyInterface;
 use GrinchenkoUniversity\Diia\Dto\Request\OfferRequest;
 
-class OfferRequestMapper implements RequestMapperInterface, SupportedDependencyInterface
+class OfferRequestMapper implements RequestMapperInterface
 {
     /**
      * @param OfferRequest $dto
@@ -50,10 +49,5 @@ class OfferRequestMapper implements RequestMapperInterface, SupportedDependencyI
         }
 
         return $request;
-    }
-
-    public function isSupported($value): bool
-    {
-        return $value instanceof OfferRequest;
     }
 }

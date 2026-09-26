@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace GrinchenkoUniversity\Diia\Tests\Support;
 
+use GrinchenkoUniversity\Diia\Http\ApiTransport;
+use GrinchenkoUniversity\Diia\Provider\BearerTokenProvider;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
@@ -69,6 +71,19 @@ trait ApiFixtures
             'handler' => $stack,
             'base_uri' => 'https://api.diia.test',
         ]);
+    }
+
+    /**
+     * A transport whose token is the one in the fixtures' Authorization header.
+     *
+     * @param string|ResponseInterface|Throwable ...$responses
+     */
+    protected function transportReplaying(...$responses): ApiTransport
+    {
+        return new ApiTransport(
+            $this->httpClientReplaying(...$responses),
+            $this->createConfiguredMock(BearerTokenProvider::class, ['getToken' => 'eyJ...ePg'])
+        );
     }
 
     protected function recordedRequest(int $index): RequestInterface

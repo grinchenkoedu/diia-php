@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace GrinchenkoUniversity\Diia\Mapper\Acquirers;
 
-use GrinchenkoUniversity\Diia\Dependency\SupportedDependencyInterface;
 use GrinchenkoUniversity\Diia\Dto\Acquirers\Offer;
 use GrinchenkoUniversity\Diia\Mapper\Request\RequestMapperInterface;
 use GrinchenkoUniversity\Diia\Mapper\Response\ResponseMapperInterface;
 use GrinchenkoUniversity\Diia\Mapper\ScopesMapper;
 
-class OfferMapper implements RequestMapperInterface, ResponseMapperInterface, SupportedDependencyInterface
+class OfferMapper implements RequestMapperInterface, ResponseMapperInterface
 {
     private ScopesMapper $scopesMapper;
 
@@ -51,10 +50,5 @@ class OfferMapper implements RequestMapperInterface, ResponseMapperInterface, Su
             ->setReturnLink($response['returnLink'])
             ->setScopes($this->scopesMapper->mapFromResponse($response['scopes']))
         ;
-    }
-
-    public function isSupported($value): bool
-    {
-        return $value instanceof Offer;
     }
 }
