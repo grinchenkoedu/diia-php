@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.0.1 — 2026-09-27
+
+### Fixed
+- `ScopesMapper::__construct()` and `ItemsListResponse::__construct()` declared implicitly nullable
+  parameters, which PHP 8.4 reports as deprecated each time the class loads (and a caller whose test
+  suite fails on printed output fails with it). They are now `?Scopes` and `?int`. No behaviour change.
+- The test suite now fails on deprecations (`convertDeprecationsToExceptions`), so the next one
+  cannot pass CI unnoticed.
+
 ## 2.0.0 — 2026-09-26
 
 ### Changed

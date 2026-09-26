@@ -93,7 +93,8 @@ class ClientFactoryTest extends TestCase
         $types = [];
 
         foreach ((new ReflectionClass($class))->getConstructor()->getParameters() as $parameter) {
-            $types[] = (string) $parameter->getType();
+            // getName(), not a string cast: casting ReflectionType is deprecated on PHP 7.4.
+            $types[] = $parameter->getType()->getName();
         }
 
         $this->assertSame(array_unique($types), $types, $class);

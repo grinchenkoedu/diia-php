@@ -11,7 +11,7 @@ class ItemsListResponse
     private array $items;
     private ?int $total;
 
-    public function __construct(array $items = [], int $total = null)
+    public function __construct(array $items = [], ?int $total = null)
     {
         $this->items = $items;
         $this->total = $total;
