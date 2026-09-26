@@ -1,6 +1,6 @@
 {
   "name": "grinchenkoedu/diia-php",
-  "description": "Unofficial Diia library for PHP",
+  "description": "Diia (Дія) API client for PHP",
   "type": "library",
   "license": "MIT",
   "authors": [
@@ -10,10 +10,10 @@
     }
   ],
   "require": {
-    "php": ">=7.4",
-    "guzzlehttp/guzzle": "^7.6",
-    "psr/simple-cache": "^1.0",
-    "psr/log": "^1.1",
+    "php": "^7.4 || ^8.0",
+    "guzzlehttp/guzzle": "^7.8",
+    "psr/simple-cache": "^1.0 || ^2.0 || ^3.0",
+    "psr/log": "^1.1 || ^2.0 || ^3.0",
     "ext-json": "*"
   },
   "autoload": {

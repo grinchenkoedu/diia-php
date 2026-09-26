@@ -57,6 +57,17 @@ trait ApiFixtures
      */
     protected function httpClientReplaying(...$responses): Client
     {
+        return new Client([
+            'handler' => $this->handlerReplaying(...$responses),
+            'base_uri' => 'https://api.diia.test',
+        ]);
+    }
+
+    /**
+     * @param string|ResponseInterface|Throwable ...$responses
+     */
+    protected function handlerReplaying(...$responses): HandlerStack
+    {
         $queue = [];
 
         foreach ($responses as $response) {
@@ -67,10 +78,7 @@ trait ApiFixtures
         $stack = HandlerStack::create(new MockHandler($queue));
         $stack->push(Middleware::history($this->httpHistory));
 
-        return new Client([
-            'handler' => $stack,
-            'base_uri' => 'https://api.diia.test',
-        ]);
+        return $stack;
     }
 
     /**
