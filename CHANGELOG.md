@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.1 — unreleased
+## 2.0.1 — 2026-09-27
 
 ### Fixed
 - `ScopesMapper::__construct()` and `ItemsListResponse::__construct()` declared implicitly nullable
