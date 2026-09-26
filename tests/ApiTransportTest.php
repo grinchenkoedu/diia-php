@@ -165,27 +165,61 @@ class ApiTransportTest extends TestCase
 
     public function testMapsConnectionFailure(): void
     {
-        $previous = new ConnectException('Connection refused', new Request('GET', '/api/v2/acquirers/branches'));
+        $previous = new ConnectException(
+            'cURL error 7: Connection refused for https://api.diia.test/api/v1/acquirers/document-request/status?barcode=3535267635434',
+            new Request('GET', '/api/v1/acquirers/document-request/status'),
+            null,
+            ['error' => 'Connection refused']
+        );
         $transport = $this->transport(['token' => 'eyJ...ePg'], $previous);
 
         try {
-            $transport->request('GET', '/api/v2/acquirers/branches');
+            $transport->request('GET', '/api/v1/acquirers/document-request/status', null, ['barcode' => '3535267635434']);
             $this->fail('DiiaApiException expected');
         } catch (DiiaApiException $exception) {
             $this->assertSame(0, $exception->getStatusCode());
             $this->assertSame($previous, $exception->getPrevious());
+            $this->assertSame(
+                'Diia API GET /api/v1/acquirers/document-request/status failed: no response (Connection refused)',
+                $exception->getMessage()
+            );
         }
     }
 
-    public function testMapsFailedTokenRequest(): void
+    public function testMapsFailedTokenRequestWithoutLeakingToken(): void
     {
-        $transport = $this->transport([], new Response(403, [], '{"message": "Forbidden"}'));
+        $transport = $this->transport([], new Response(403, [], '{"message": "Forbidden", "code": 403}'));
 
         try {
             $transport->request('GET', '/api/v2/acquirers/branches');
             $this->fail('DiiaApiException expected');
         } catch (DiiaApiException $exception) {
             $this->assertSame(403, $exception->getStatusCode());
+            $this->assertSame('403', $exception->getErrorCode());
+            $this->assertSame(
+                'Diia API GET /api/v2/acquirers/branches failed: the token request failed with HTTP 403',
+                $exception->getMessage()
+            );
+            // Guzzle's own exception quotes /api/v1/auth/acquirer/<acquirer token>.
+            $this->assertNull($exception->getPrevious());
+        }
+    }
+
+    public function testTokenRequestWithoutResponseDoesNotLeakToken(): void
+    {
+        $transport = $this->transport([], new ConnectException(
+            'cURL error 7: Connection refused for https://api.diia.test/api/v1/auth/acquirer/acquirerToken',
+            new Request('GET', '/api/v1/auth/acquirer/acquirerToken')
+        ));
+
+        try {
+            $transport->request('GET', '/api/v2/acquirers/branches');
+            $this->fail('DiiaApiException expected');
+        } catch (DiiaApiException $exception) {
+            $this->assertSame(0, $exception->getStatusCode());
+            $this->assertStringNotContainsString('acquirerToken', $exception->getMessage());
+            $this->assertStringContainsString('the token request got no response', $exception->getMessage());
+            $this->assertNull($exception->getPrevious());
         }
     }
 

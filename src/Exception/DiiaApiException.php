@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace GrinchenkoUniversity\Diia\Exception;
 
+use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 use Psr\Http\Message\ResponseInterface;
+use ReflectionClass;
 use RuntimeException;
 use Throwable;
 
@@ -41,9 +43,7 @@ class DiiaApiException extends RuntimeException
         ?Throwable $previous = null
     ): self {
         $body = (string) $response->getBody();
-        $data = json_decode($body, true);
-        $diiaMessage = is_array($data) && is_string($data['message'] ?? null) ? $data['message'] : null;
-        $errorCode = is_array($data) && is_scalar($data['code'] ?? null) ? (string) $data['code'] : null;
+        [$diiaMessage, $errorCode] = self::parseErrorBody($body);
 
         return new self(
             sprintf(
@@ -67,12 +67,78 @@ class DiiaApiException extends RuntimeException
         }
 
         return new self(
-            sprintf('Diia API %s %s failed: %s', $method, $path, $exception->getMessage()),
+            sprintf('Diia API %s %s failed: no response (%s)', $method, $path, self::describe($exception)),
             0,
             null,
             null,
             $exception
         );
+    }
+
+    /**
+     * The bearer token could not be fetched for a call to $method $path.
+     *
+     * Deliberately not chained: the token endpoint has the acquirer token in its URL, and
+     * Guzzle quotes the URL in its messages, which loggers print along with the previous exception.
+     */
+    public static function fromTokenRequest(string $method, string $path, GuzzleException $exception): self
+    {
+        $response = $exception instanceof RequestException ? $exception->getResponse() : null;
+
+        if ($response === null) {
+            return new self(sprintf(
+                'Diia API %s %s failed: the token request got no response (%s)',
+                $method,
+                $path,
+                self::describe($exception)
+            ));
+        }
+
+        $body = (string) $response->getBody();
+        [, $errorCode] = self::parseErrorBody($body);
+
+        return new self(
+            sprintf(
+                'Diia API %s %s failed: the token request failed with HTTP %d',
+                $method,
+                $path,
+                $response->getStatusCode()
+            ),
+            $response->getStatusCode(),
+            $errorCode,
+            $body
+        );
+    }
+
+    /**
+     * @return array{?string, ?string} Diia's "message" and "code", when the body has them
+     */
+    private static function parseErrorBody(string $body): array
+    {
+        $data = json_decode($body, true);
+
+        if (!is_array($data)) {
+            return [null, null];
+        }
+
+        return [
+            is_string($data['message'] ?? null) ? $data['message'] : null,
+            is_scalar($data['code'] ?? null) ? (string) $data['code'] : null,
+        ];
+    }
+
+    /**
+     * What went wrong, without Guzzle's message: it ends with the full request URL.
+     */
+    private static function describe(GuzzleException $exception): string
+    {
+        $context = $exception instanceof RequestException || $exception instanceof ConnectException
+            ? $exception->getHandlerContext()
+            : [];
+
+        return is_string($context['error'] ?? null)
+            ? $context['error']
+            : (new ReflectionClass($exception))->getShortName();
     }
 
     /**

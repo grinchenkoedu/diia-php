@@ -65,27 +65,36 @@ final class ApiTransport
 
     private function send(string $method, string $path, ?array $body, array $query): ResponseInterface
     {
+        $options = [
+            'headers' => [
+                'accept' => 'application/json',
+                'Authorization' => 'Bearer ' . $this->token($method, $path),
+                'Content-Type' => 'application/json',
+            ],
+            'http_errors' => false,
+        ];
+
+        if ($body !== null) {
+            $options['body'] = json_encode($body, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        }
+
+        if ($query !== []) {
+            $options['query'] = $query;
+        }
+
         try {
-            $options = [
-                'headers' => [
-                    'accept' => 'application/json',
-                    'Authorization' => 'Bearer ' . $this->bearerTokenProvider->getToken(),
-                    'Content-Type' => 'application/json',
-                ],
-                'http_errors' => false,
-            ];
-
-            if ($body !== null) {
-                $options['body'] = json_encode($body, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
-            }
-
-            if ($query !== []) {
-                $options['query'] = $query;
-            }
-
             return $this->httpClient->request($method, $path, $options);
         } catch (GuzzleException $exception) {
             throw DiiaApiException::fromGuzzle($method, $path, $exception);
+        }
+    }
+
+    private function token(string $method, string $path): string
+    {
+        try {
+            return $this->bearerTokenProvider->getToken();
+        } catch (GuzzleException $exception) {
+            throw DiiaApiException::fromTokenRequest($method, $path, $exception);
         }
     }
 
