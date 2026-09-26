@@ -21,6 +21,11 @@
       "GrinchenkoUniversity\\Diia\\": "src/"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "GrinchenkoUniversity\\Diia\\Tests\\": "tests/"
+    }
+  },
   "require-dev": {
     "phpunit/phpunit": "^9"
   }

@@ -1,0 +1,10 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/api/v2/acquirers/branch",
+    "query": {},
+    "headers": {"accept": "application/json", "authorization": "Bearer eyJ...ePg", "content-type": "application/json"},
+    "body": {"name": "Name", "location": "Location", "street": "Street", "house": "1", "deliveryTypes": ["api"], "offerRequestType": "dynamic", "scopes": {"diiaId": ["hashedFilesSigning"], "sharing": ["passport", "internal-passport", "foreign-passport", "taxpayer-card", "reference-internally-displaced-person", "birth-certificate", "driver-license", "vehicle-license", "student-id-card", "education-document"]}}
+  },
+  "response": {"status": 200, "body": {"_id": "xLm0g93Ghg329NhQj235hAsg32"}}
+}

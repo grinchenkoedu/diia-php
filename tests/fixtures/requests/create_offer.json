@@ -1,0 +1,10 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/acquirers/branch/branch_id/offer",
+    "query": {},
+    "headers": {"accept": "application/json", "authorization": "Bearer eyJ...ePg", "content-type": "application/json"},
+    "body": {"name": "Підписання заяви", "scopes": {"diiaId": ["hashedFilesSigning"]}, "returnLink": "https://example.com/return"}
+  },
+  "response": {"status": 200, "body": {"_id": "offer_id"}}
+}

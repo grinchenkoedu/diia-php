@@ -1,0 +1,10 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/acquirers/document-request",
+    "query": {},
+    "headers": {"accept": "application/json", "authorization": "Bearer eyJ...ePg", "content-type": "application/json"},
+    "body": {"branchId": "branch_id", "barcode": "3535267635434", "requestId": "request_id", "useDiiaId": true}
+  },
+  "response": {"status": 200, "body": null}
+}

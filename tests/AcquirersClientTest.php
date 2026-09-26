@@ -23,27 +23,25 @@ use GrinchenkoUniversity\Diia\Mapper\Response\ResponseJsonMapper;
 use GrinchenkoUniversity\Diia\Mapper\ScopesMapper;
 use GrinchenkoUniversity\Diia\Provider\BearerTokenProvider;
 use GrinchenkoUniversity\Diia\Provider\HttpHeadersProvider;
-use GuzzleHttp\Client;
-use GuzzleHttp\Psr7\Response;
+use GrinchenkoUniversity\Diia\Tests\Support\ApiFixtures;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Freezes the 1.0 behaviour: every public method against tests/fixtures/requests.
+ * The 2.0 clients are tested against the same fixtures.
+ */
 class AcquirersClientTest extends TestCase
 {
-    private Client $httpClient;
-    private HttpHeadersProvider $httpHeadersProvider;
-    private RequestJsonMapper $requestJsonMapper;
-    private AcquirersClient $acquirersClient;
+    use ApiFixtures;
 
-    protected function setUp(): void
+    private function client(string $fixture): AcquirersClient
     {
-        $this->httpClient = $this->createMock(Client::class);
         $tokenProvider = $this->createConfiguredMock(
             BearerTokenProvider::class,
             [
                 'getToken' => 'eyJ...ePg',
             ]
         );
-        $this->httpHeadersProvider = new HttpHeadersProvider($tokenProvider);
 
         $defaultScopes = new Scopes();
         $defaultScopes
@@ -62,12 +60,11 @@ class AcquirersClientTest extends TestCase
             ->addDependency(new OfferRequestMapper())
             ->addDependency(new DocumentRequestMapper())
         ;
-        $this->requestJsonMapper = new RequestJsonMapper($dependencyResolver);
 
-        $this->acquirersClient = new AcquirersClient(
-            $this->httpClient,
-            $this->httpHeadersProvider,
-            $this->requestJsonMapper,
+        return new AcquirersClient(
+            $this->httpClientReplaying($fixture),
+            new HttpHeadersProvider($tokenProvider),
+            new RequestJsonMapper($dependencyResolver),
             new ResponseJsonMapper(new ApiResourceMapper()),
             new ResponseJsonMapper(
                 new ItemsListResponseMapper('branches', $branchMapper)
@@ -82,420 +79,160 @@ class AcquirersClientTest extends TestCase
 
     public function testCreateBranch()
     {
-        $request = new Branch('Name', 'Location', 'Street', '1');
-        $response = new Response(
-            200,
-            [
-                'Content-Type' => 'application/json',
-            ],
-            '{"_id": "xLm0g93Ghg329NhQj235hAsg32"}'
-        );
+        $resource = $this->client('create_branch')->createBranch(new Branch('Name', 'Location', 'Street', '1'));
 
-        $this
-            ->httpClient
-            ->expects($this->once())
-            ->method('request')
-            ->with(
-                'POST',
-                '/api/v2/acquirers/branch',
-                [
-                    'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
-                    'body' => $this->requestJsonMapper->mapToJson($request),
-                ]
-            )
-            ->willReturn($response)
-        ;
-
-        $resource = $this->acquirersClient->createBranch($request);
-
-        $this->assertEquals('xLm0g93Ghg329NhQj235hAsg32', $resource->getId());
-    }
-
-    public function testGetBranches()
-    {
-        $response = new Response(
-            200,
-            [
-                'Content-Type' => 'application/json',
-            ],
-            <<<EOF
-            {
-              "branches": [
-                {
-                  "_id": "xLm0g93Ghg329NhQj235hAsg32",
-                  "name": "Назва",
-                  "email": "acquirer@email.com",
-                  "customFullName": "Custom fullname",
-                  "customFullAddress": "Custom fulladdress",
-                  "region": "Київська обл.",
-                  "district": "Києво-Святошинський р-н",
-                  "location": "м. Вишневе",
-                  "street": "вул. Київська",
-                  "house": "2л",
-                  "scopes": {
-                    "diiaId": [
-                      "hashedFilesSigning"
-                    ]
-                  },
-                  "offerRequestType": "dynamic",
-                  "deliveryTypes": [
-                    "api"
-                  ]
-                }
-              ],
-              "total": 20
-            }
-            EOF
-        );
-
-        $this
-            ->httpClient
-            ->expects($this->once())
-            ->method('request')
-            ->with(
-                'GET',
-                '/api/v2/acquirers/branches',
-                [
-                    'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
-                    'query' => [
-                        'skip' => 0,
-                        'limit' => 2,
-                    ],
-                ]
-            )
-            ->willReturn($response)
-        ;
-
-        $listResponse = $this->acquirersClient->getBranches(new ItemsListRequest(2));
-        $items = $listResponse->getItems();
-
-        $this->assertCount(1, $items);
-        $this->assertInstanceOf(Branch::class, $items[0]);
-    }
-
-    public function testGetBranch()
-    {
-        $response = new Response(
-            200,
-            [
-                'Content-Type' => 'application/json',
-            ],
-            <<<EOF
-            {
-              "_id": "xLm0g93Ghg329NhQj235hAsg32",
-              "name": "Назва",
-              "email": "acquirer@email.com",
-              "customFullName": "Custom fullname",
-              "customFullAddress": "Custom fulladdress",
-              "region": "Київська обл.",
-              "district": "Києво-Святошинський р-н",
-              "location": "м. Вишневе",
-              "street": "вул. Київська",
-              "house": "2л",
-              "scopes": {
-                "diiaId": [
-                  "hashedFilesSigning"
-                ]
-              },
-              "offerRequestType": "dynamic",
-              "deliveryTypes": [
-                "api"
-              ]
-            }
-            EOF
-        );
-
-        $this
-            ->httpClient
-            ->expects($this->once())
-            ->method('request')
-            ->with(
-                'GET',
-                '/api/v2/acquirers/branch/xLm0g93Ghg329NhQj235hAsg32',
-                [
-                    'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
-                ]
-            )
-            ->willReturn($response)
-        ;
-
-        $branchResponse = $this->acquirersClient->getBranch('xLm0g93Ghg329NhQj235hAsg32');
-        $this->assertInstanceOf(Branch::class, $branchResponse);
+        $this->assertRequestMatchesFixture('create_branch');
+        $this->assertSame('xLm0g93Ghg329NhQj235hAsg32', $resource->getId());
     }
 
     public function testUpdateBranch()
     {
-        $request = new Branch('Name', 'Location', 'Street', '1');
-        $response = new Response(
-            200,
-            [
-                'Content-Type' => 'application/json',
-            ],
-            '{"_id": "xLm0g93Ghg329NhQj235hAsg32"}'
-        );
-
-        $this
-            ->httpClient
-            ->expects($this->once())
-            ->method('request')
-            ->with(
-                'PUT',
-                '/api/v2/acquirers/branch/xLm0g93Ghg329NhQj235hAsg32',
-                [
-                    'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
-                    'body' => $this->requestJsonMapper->mapToJson($request),
-                ]
-            )
-            ->willReturn($response)
+        $branch = (new Branch('Назва', 'м. Вишневе', 'вул. Київська', '2л'))
+            ->setCustomFullName('Custom fullname')
+            ->setCustomFullAddress('Custom fulladdress')
+            ->setEmail('acquirer@email.com')
+            ->setRegion('Київська обл.')
+            ->setDistrict('Києво-Святошинський р-н')
+            ->setScopes((new Scopes())->addScopes(ScopesDiiaId::NAME, ScopesDiiaId::SCOPES_ALL))
         ;
 
-        $resource = $this->acquirersClient->updateBranch(
-            'xLm0g93Ghg329NhQj235hAsg32',
-            new Branch('Name', 'Location', 'Street', '1')
-        );
+        $resource = $this->client('update_branch')->updateBranch('xLm0g93Ghg329NhQj235hAsg32', $branch);
 
-        $this->assertEquals('xLm0g93Ghg329NhQj235hAsg32', $resource->getId());
+        $this->assertRequestMatchesFixture('update_branch');
+        $this->assertSame('xLm0g93Ghg329NhQj235hAsg32', $resource->getId());
     }
 
     public function testDeleteBranch()
     {
-        $this
-            ->httpClient
-            ->expects($this->once())
-            ->method('request')
-            ->with(
-                'DELETE',
-                '/api/v2/acquirers/branch/xLm0g93Ghg329NhQj235hAsg32',
-                [
-                    'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
-                ]
-            )
-            ->willReturn(new Response(204))
-        ;
+        $this->client('delete_branch')->deleteBranch('xLm0g93Ghg329NhQj235hAsg32');
 
-        $this->acquirersClient->deleteBranch('xLm0g93Ghg329NhQj235hAsg32');
+        $this->assertRequestMatchesFixture('delete_branch');
+    }
+
+    public function testGetBranch()
+    {
+        $branch = $this->client('get_branch')->getBranch('xLm0g93Ghg329NhQj235hAsg32');
+
+        $this->assertRequestMatchesFixture('get_branch');
+        $this->assertBranch($branch);
+    }
+
+    public function testGetBranches()
+    {
+        $listResponse = $this->client('list_branches')->getBranches(new ItemsListRequest(2));
+
+        $this->assertRequestMatchesFixture('list_branches');
+        $this->assertSame(20, $listResponse->getTotal());
+        $this->assertCount(1, $listResponse->getItems());
+        $this->assertBranch($listResponse->getItems()[0]);
     }
 
     public function testCreateOffer()
     {
-        $offer = new Offer('Name');
-        $response = new Response(
-            200,
-            [
-                'Content-Type' => 'application/json',
-            ],
-            '{"_id": "offer_id"}'
-        );
-
-        $this
-            ->httpClient
-            ->expects($this->once())
-            ->method('request')
-            ->with(
-                'POST',
-                '/api/v1/acquirers/branch/branch_id/offer',
-                [
-                    'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
-                    'body' => $this->requestJsonMapper->mapToJson($offer),
-                ]
-            )
-            ->willReturn($response)
+        $offer = (new Offer('Підписання заяви'))
+            ->setReturnLink('https://example.com/return')
+            ->setScopes((new Scopes())->addScopes(ScopesDiiaId::NAME, ScopesDiiaId::SCOPES_ALL))
         ;
 
-        $resource = $this->acquirersClient->createOffer('branch_id', $offer);
+        $resource = $this->client('create_offer')->createOffer('branch_id', $offer);
 
-        $this->assertEquals('offer_id', $resource->getId());
+        $this->assertRequestMatchesFixture('create_offer');
+        $this->assertSame('offer_id', $resource->getId());
     }
 
     public function testDeleteOffer()
     {
-        $this
-            ->httpClient
-            ->expects($this->once())
-            ->method('request')
-            ->with(
-                'DELETE',
-                '/api/v1/acquirers/branch/branch_id/offer/offer_id',
-                [
-                    'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
-                ]
-            )
-            ->willReturn(new Response(204))
-        ;
+        $this->client('delete_offer')->deleteOffer('branch_id', 'offer_id');
 
-        $this->acquirersClient->deleteOffer('branch_id', 'offer_id');
+        $this->assertRequestMatchesFixture('delete_offer');
     }
 
     public function testGetOffers()
     {
-        $response = new Response(
-            200,
-            [
-                'Content-Type' => 'application/json',
-            ],
-            <<<EOF
-            {
-                "total": 2,
-                "offers": [
-                   {
-                       "_id": "27924...ecb42f44bec9",
-                       "name": "Підписання документа",
-                       "scopes": { "diiaId": ["hashedFilesSigning"] },
-                       "returnLink": "1"
-                   },
-                   {
-                       "_id": "0dc97...d1cc633a81a",
-                       "name": "Підписання заяви",
-                       "scopes": { "diiaId": ["hashedFilesSigning"] },
-                       "returnLink": "1"
-                    }
-                ]
-            }
-            EOF
-        );
-
-        $this
-            ->httpClient
-            ->expects($this->once())
-            ->method('request')
-            ->with(
-                'GET',
-                '/api/v1/acquirers/branch/branch_id/offers',
-                [
-                    'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
-                    'query' => [
-                        'skip' => 0,
-                        'limit' => 100,
-                    ],
-                ]
-            )
-            ->willReturn($response)
-        ;
-
-        $listResponse = $this->acquirersClient->getOffers('branch_id', new ItemsListRequest(100));
+        $listResponse = $this->client('list_offers')->getOffers('branch_id', new ItemsListRequest(100));
         $items = $listResponse->getItems();
 
+        $this->assertRequestMatchesFixture('list_offers');
+        $this->assertSame(2, $listResponse->getTotal());
         $this->assertCount(2, $items);
         $this->assertInstanceOf(Offer::class, $items[0]);
+        $this->assertSame('6de1...a4d7', $items[0]->getId());
+        $this->assertSame('Поділитися паспортом', $items[0]->getName());
+        $this->assertSame('https://example.com/return', $items[0]->getReturnLink());
+        $this->assertSame(['sharing' => ['passport']], $items[0]->getScopes()->getAll());
+        $this->assertSame('0dc97...d1cc633a81a', $items[1]->getId());
     }
 
-    public function testOfferRequest()
+    public function testMakeOfferRequestForSigning()
     {
-        $offerRequest = new OfferRequest('offer_id', 'request_id');
-        $offerRequest
+        $offerRequest = (new OfferRequest('offer_id', 'request_id'))
             ->setSignAlgo(OfferRequest::SIGN_ALGO_ECDSA)
             ->addFile('test', 'MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI=')
         ;
 
-        $response = new Response(
-            200,
-            [
-                'Content-Type' => 'application/json',
-            ],
-            '{"deeplink": "https://diia.app/acquirers/branch/offer/offer-request/uuid4"}'
-        );
+        $offerResponse = $this->client('offer_request_signing')->makeOfferRequest('branch_id', $offerRequest);
 
-        $this
-            ->httpClient
-            ->expects($this->once())
-            ->method('request')
-            ->with(
-                'POST',
-                '/api/v2/acquirers/branch/branch_id/offer-request/dynamic',
-                [
-                    'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
-                    'body' => $this->requestJsonMapper->mapToJson($offerRequest),
-                ]
-            )
-            ->willReturn($response)
-        ;
-
-        $offerResponse = $this->acquirersClient->makeOfferRequest('branch_id', $offerRequest);
-
-        $this->assertEquals(
+        $this->assertRequestMatchesFixture('offer_request_signing');
+        $this->assertSame(
             'https://diia.app/acquirers/branch/offer/offer-request/uuid4',
             $offerResponse->getDeepLink()
         );
     }
 
-    public function testDocumentRequest()
+    public function testMakeOfferRequestForSharing()
     {
-        $documentRequest = new DocumentRequest(
-            'branchId',
-            '3535267635434',
-            'requestId'
+        $offerRequest = (new OfferRequest('offer_id', 'request_id'))
+            ->setUseDiia(true)
+            ->setReturnLink('https://example.com/return')
+        ;
+
+        $offerResponse = $this->client('offer_request_sharing')->makeOfferRequest('branch_id', $offerRequest);
+
+        $this->assertRequestMatchesFixture('offer_request_sharing');
+        $this->assertSame(
+            'https://diia.app/acquirers/branch/offer/offer-request/sharing',
+            $offerResponse->getDeepLink()
         );
-
-        $this
-            ->httpClient
-            ->expects($this->once())
-            ->method('request')
-            ->with(
-                'POST',
-                '/api/v1/acquirers/document-request',
-                [
-                    'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
-                    'body' => $this->requestJsonMapper->mapToJson($documentRequest),
-                ]
-            )
-            ->willReturn(new Response(200));
-
-        $this->acquirersClient->documentRequest($documentRequest);
-    }
-
-    public function testDocumentRequestStatus()
-    {
-        $barcode = 'barcode';
-        $requestId = 'requestId';
-        $expectedStatus = 'status';
-
-        $this
-            ->httpClient
-            ->expects($this->once())
-            ->method('request')
-            ->with(
-                'GET',
-                '/api/v1/acquirers/document-request/status',
-                [
-                    'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
-                    'query' => [
-                        'barcode' => $barcode,
-                        'requestId' => $requestId,
-                    ],
-                ]
-            )
-            ->willReturn(new Response(200, [], json_encode(['status' => $expectedStatus])));
-
-        $status = $this->acquirersClient->documentRequestStatus($barcode, $requestId);
-
-        $this->assertEquals($expectedStatus, $status);
     }
 
     public function testOfferRequestStatus()
     {
-        $otp = 'otp';
-        $requestId = 'requestId';
-        $expectedStatus = 'status';
+        $status = $this->client('offer_request_status')->offerRequestStatus('otp', 'request_id');
 
-        $this
-            ->httpClient
-            ->expects($this->once())
-            ->method('request')
-            ->with(
-                'GET',
-                '/api/v1/acquirers/offer-request/status',
-                [
-                    'headers' => $this->httpHeadersProvider->getDefaultHeaders(),
-                    'query' => [
-                        'otp' => $otp,
-                        'requestId' => $requestId,
-                    ],
-                ]
-            )
-            ->willReturn(new Response(200, [], json_encode(['status' => $expectedStatus])));
+        $this->assertRequestMatchesFixture('offer_request_status');
+        $this->assertSame('processing', $status);
+    }
 
-        $status = $this->acquirersClient->offerRequestStatus($otp, $requestId);
+    public function testDocumentRequest()
+    {
+        $this->client('document_request')->documentRequest(
+            new DocumentRequest('branch_id', '3535267635434', 'request_id')
+        );
 
-        $this->assertEquals($expectedStatus, $status);
+        $this->assertRequestMatchesFixture('document_request');
+    }
+
+    public function testDocumentRequestStatus()
+    {
+        $status = $this->client('document_request_status')->documentRequestStatus('3535267635434', 'request_id');
+
+        $this->assertRequestMatchesFixture('document_request_status');
+        $this->assertSame('success', $status);
+    }
+
+    private function assertBranch($branch): void
+    {
+        $this->assertInstanceOf(Branch::class, $branch);
+        $this->assertSame('xLm0g93Ghg329NhQj235hAsg32', $branch->getId());
+        $this->assertSame('Назва', $branch->getName());
+        $this->assertSame('acquirer@email.com', $branch->getEmail());
+        $this->assertSame('Custom fullname', $branch->getCustomFullName());
+        $this->assertSame('Custom fulladdress', $branch->getCustomFullAddress());
+        $this->assertSame('Київська обл.', $branch->getRegion());
+        $this->assertSame('Києво-Святошинський р-н', $branch->getDistrict());
+        $this->assertSame('м. Вишневе', $branch->getLocation());
+        $this->assertSame('вул. Київська', $branch->getStreet());
+        $this->assertSame('2л', $branch->getHouse());
+        $this->assertSame(['diiaId' => ['hashedFilesSigning']], $branch->getScopes()->getAll());
     }
 }

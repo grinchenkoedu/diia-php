@@ -1,0 +1,10 @@
+{
+  "request": {
+    "method": "PUT",
+    "path": "/api/v2/acquirers/branch/xLm0g93Ghg329NhQj235hAsg32",
+    "query": {},
+    "headers": {"accept": "application/json", "authorization": "Bearer eyJ...ePg", "content-type": "application/json"},
+    "body": {"name": "Назва", "location": "м. Вишневе", "street": "вул. Київська", "house": "2л", "deliveryTypes": ["api"], "offerRequestType": "dynamic", "scopes": {"diiaId": ["hashedFilesSigning"]}, "customFullName": "Custom fullname", "customFullAddress": "Custom fulladdress", "email": "acquirer@email.com", "region": "Київська обл.", "district": "Києво-Святошинський р-н"}
+  },
+  "response": {"status": 200, "body": {"_id": "xLm0g93Ghg329NhQj235hAsg32"}}
+}
