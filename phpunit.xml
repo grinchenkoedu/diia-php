@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit convertDeprecationsToExceptions="true">
+    <php>
+        <!-- CI loads the production php.ini, which leaves out E_DEPRECATED; without this the guard never fires. -->
+        <ini name="error_reporting" value="-1"/>
+    </php>
     <testsuites>
         <testsuite name="Tests">
             <directory>tests/</directory>
